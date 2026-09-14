@@ -13,7 +13,14 @@ const app = express();
 app.set("trust proxy", 1);
 
 app.use(helmet());
-app.use(cors());
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://market-place-frontend-five.vercel.app",
+];
+
+app.use(cors({
+  origin: allowedOrigins,
+}));
 app.use(express.json());
 
 const authLimiter = rateLimit({

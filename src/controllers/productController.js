@@ -1,5 +1,7 @@
 import prisma from "../config/db.js";
 import { catchAsync } from "../utils/catchAsync.js";
+import cloudinary from "../config/cloudinary.js";
+
 
 export const createProduct = catchAsync(async (req, res) => {
   const { name, description, price, imageUrl, stock, catalogId, categoryId } = req.body;
@@ -127,4 +129,25 @@ export const deleteProduct = catchAsync(async (req, res) => {
   await prisma.product.delete({ where: { id } });
 
   res.status(204).send();
+});
+
+export const uploadProductImage = catchAsync(async (req, res) => {
+  if (!req.file) {
+    const error = new Error("No se envió ninguna imagen");
+    error.status = 400;
+    throw error;
+  }
+
+  const result = await new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: "marketplace-products" },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    uploadStream.end(req.file.buffer);
+  });
+
+  res.json({ imageUrl: result.secure_url });
 });
